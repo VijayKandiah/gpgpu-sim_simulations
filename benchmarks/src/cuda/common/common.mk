@@ -20,8 +20,8 @@
 
 .SUFFIXES : .cu .cu_dbg.o .c_dbg.o .cpp_dbg.o .cu_rel.o .c_rel.o .cpp_rel.o .cubin .ptx
 
-INCLUDES += #-I$(NVIDIA_COMPUTE_SDK_LOCATION)/../4.2/C/common/inc
-ADDITIONAL_LIBS := #-L$(NVIDIA_COMPUTE_SDK_LOCATION)/../4.2/C/lib -lcutil_x86_64
+INCLUDES += #-I$(NVIDIA_COMPUTE_SDK_LOCATION)/common/inc
+ADDITIONAL_LIBS := #-L$(NVIDIA_COMPUTE_SDK_LOCATION)/common/lib -lcutil_x86_64
 
 # Add new SM Versions here as devices with new Compute Capability are released
 SM_VERSIONS   := 10 11 12 13 20 21 30 50 60 62 70
@@ -59,11 +59,9 @@ LIBDIR     ?= $(ROOTDIR)/../lib
 ifeq ($(shell test ${CUDA_VERSION_MAJOR} -lt 5; echo $$?), 0)
   LIBDIRSDK     := $(NVIDIA_COMPUTE_SDK_LOCATION)/C/lib
   COMMONDIR  := $(NVIDIA_COMPUTE_SDK_LOCATION)/C/common
-  SHAREDDIR  := $(NVIDIA_COMPUTE_SDK_LOCATION)/shared
 else
-  LIBDIRSDK     ?= $(NVIDIA_COMPUTE_SDK_LOCATION)/lib
+  LIBDIRSDK     ?= $(NVIDIA_COMPUTE_SDK_LOCATION)/common/lib
   COMMONDIR  ?= $(NVIDIA_COMPUTE_SDK_LOCATION)/common
-  SHAREDDIR  ?= $(NVIDIA_COMPUTE_SDK_LOCATION)/shared
   OMIT_CUTIL_LIB ?= 1
   OMIT_SHRUTIL_LIB ?= 1
 endif
@@ -76,7 +74,7 @@ CC         := gcc -fPIC
 LINK       := g++ -fPIC
 
 # Includes
-INCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include -I$(COMMONDIR)/inc -I$(SHAREDDIR)/inc
+INCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include -I$(COMMONDIR)/inc
 
 # Warning flags
 CXXWARN_FLAGS := \
@@ -157,6 +155,8 @@ GENCODE_SM35 ?= -gencode=arch=compute_35,code=\"sm_35,compute_35\"
 GENCODE_SM50 ?= -gencode=arch=compute_50,code=\"sm_50,compute_50\"
 GENCODE_SM60 ?= -gencode=arch=compute_60,code=\"sm_60,compute_60\"
 GENCODE_SM62 ?= -gencode=arch=compute_62,code=\"sm_62,compute_62\"
+GENCODE_SM70 ?= -gencode=arch=compute_70,code=\"sm_70,compute_70\"
+
 
 CXXFLAGS  += $(CXXWARN_FLAGS) $(CXX_ARCH_FLAGS)
 CFLAGS    += $(CWARN_FLAGS) $(CXX_ARCH_FLAGS)
@@ -268,19 +268,19 @@ endif
 
 # Libs
 ifneq ($(DARWIN),)
-    LIB       := -L$(CUDA_INSTALL_PATH)/lib -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER) -L$(SHAREDDIR)/lib $(NVCUVIDLIB) 
+    LIB       := -L$(CUDA_INSTALL_PATH)/lib -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER)
 else
   ifeq "$(strip $(HP_64))" ""
     ifeq ($(x86_64),1)
-       LIB       := -L$(CUDA_INSTALL_PATH)/lib64 -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER) -L$(SHAREDDIR)/lib 
+       LIB       := -L$(CUDA_INSTALL_PATH)/lib64 -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER) 
     else
-       LIB       := -L$(CUDA_INSTALL_PATH)/lib -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER) -L$(SHAREDDIR)/lib
+       LIB       := -L$(CUDA_INSTALL_PATH)/lib -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER)
     endif
   else
     ifeq ($(i386),1)
-       LIB       := -L$(CUDA_INSTALL_PATH)/lib -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER) -L$(SHAREDDIR)/lib
+       LIB       := -L$(CUDA_INSTALL_PATH)/lib -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER)
     else
-       LIB       := -L$(CUDA_INSTALL_PATH)/lib64 -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER) -L$(SHAREDDIR)/lib
+       LIB       := -L$(CUDA_INSTALL_PATH)/lib64 -L$(LIBDIR) -L$(LIBDIRSDK) -L$(COMMONDIR)/lib/$(OSLOWER)
     endif
   endif
 endif
@@ -430,11 +430,11 @@ $(OBJDIR)/%.cpp.o : $(SRCDIR)%.cpp $(C_DEPS) makedirectories
 
 # Default arch includes gencode for sm_10, sm_20, sm_30, and other archs from GENCODE_ARCH declared in the makefile
 $(OBJDIR)/%.cu.o : $(SRCDIR)%.cu $(CU_DEPS) makedirectories
-	$(VERBOSE)$(NVCC) $(GENCODE_SM10) $(GENCODE_SM13) $(GENCODE_ARCH) $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SM60) $(GENCODE_SM62) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -c $<
+	$(VERBOSE)$(NVCC) $(GENCODE_SM30) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SM60) $(GENCODE_SM62) $(GENCODE_SM70) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -c $<
 
 # Default arch includes gencode for sm_10, sm_20, sm_30, and other archs from GENCODE_ARCH declared in the makefile
 $(CUBINDIR)/%.cubin : $(SRCDIR)%.cu cubindirectory makedirectories
-	$(VERBOSE)$(NVCC) $(GENCODE_SM10) $(GENCODE_SM13) $(GENCODE_ARCH) $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SM60) $(GENCODE_SM62) $(CUBIN_ARCH_FLAG) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -cubin $<
+	$(VERBOSE)$(NVCC) $(GENCODE_SM30) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SM60) $(GENCODE_SM62) $(GENCODE_SM70) $(CUBIN_ARCH_FLAG) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -cubin $<
 
 $(PTXDIR)/%.ptx : $(SRCDIR)%.cu ptxdirectory makedirectories
 	$(VERBOSE)$(NVCC) $(CUBIN_ARCH_FLAG) $(NVCCFLAGS) $(SMVERSIONFLAGS) -o $@ -ptx $<
@@ -459,7 +459,7 @@ define SMVERSION_template
 OBJS += $(patsubst %.cu,$(OBJDIR)/%.cu_$(1).o,$(notdir $(CUFILES_sm_$(1))))
 $(OBJDIR)/%.cu_$(1).o : $(SRCDIR)%.cu $(CU_DEPS)
 #	$(VERBOSE)$(NVCC) -o $$@ -c $$< $(NVCCFLAGS)  $(1)
-	$(VERBOSE)$(NVCC) -gencode=arch=compute_$(1),code=\"sm_$(1),compute_$(1)\" $(GENCODE_SM20) $(GENCODE_SM30) -o $$@ -c $$< $(NVCCFLAGS)
+	$(VERBOSE)$(NVCC) -gencode=arch=compute_$(1),code=\"sm_$(1),compute_$(1)\" $(GENCODE_SM30) -o $$@ -c $$< $(NVCCFLAGS)
 endef
 
 # This line invokes the above template for each arch version stored in

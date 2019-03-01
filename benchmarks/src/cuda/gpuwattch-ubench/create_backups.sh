@@ -10,17 +10,9 @@ do
 	for bench_dir in $benchmarks
 	do
 		cd $bench_dir
-		backup_file=`ls | grep '.backup'`
-		cuda_file=`echo $backup_file | sed 's/\.backup//g'`
-		rm -f $cuda_file
+		cuda_file=`ls | grep -E '.cu$'`	
 		echo $cuda_file
-		echo $backup_file
-		cp -f $backup_file $cuda_file
-		makefile_bu="Makefile_bu"
-		if [ -f $makefile_bu ]; then
-			rm -f "Makefile"
-			mv $makefile_bu "Makefile"
-		fi
+    cp -f $cuda_file $cuda_file".backup"
 		cd ..
 	done
 done

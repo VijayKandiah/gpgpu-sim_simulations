@@ -477,5 +477,6 @@ clean-visualizer:
 power: power_apps
 	./restore_iterations.sh
 
-power_apps: active_cores branching_benchmarks dram_benchmarks functional_benchmarks memories_benchmarks mix_benchmarks
+#power_apps: active_cores branching_benchmarks dram_benchmarks functional_benchmarks memories_benchmarks mix_benchmarks
+power_apps: branching_benchmarks
 cleanpower: cleanactive_cores cleanhysoonkim cleanbranching cleandram cleanfunctional cleanmemories cleanmix

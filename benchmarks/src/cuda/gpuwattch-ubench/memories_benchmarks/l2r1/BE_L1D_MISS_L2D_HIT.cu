@@ -22,7 +22,7 @@
 #define SETS		64
 #define ASSOC		6
 #define SIMD_WIDTH	32
-#define ITERATIONS REPLACE_ITERATIONS
+#define ITERATIONS 10
 // Variables
 int* h_A;
 int* h_B;
@@ -79,7 +79,7 @@ __global__ void PowerKernal(int* A, int* C, int N){
 
 	// Fill the L1 cache, Miss on every iteration
 	for (int i=0; i<ITERATIONS ; i++){
-		//REPLACE_ITERATIONS
+		//10
 		REPEAT_L6(0);
 	}
     	
